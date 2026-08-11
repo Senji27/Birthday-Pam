@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#170f21;
+    --bg-mid:#2c1c40;
+    --bg-mid-2:#3a2352;
+    --accent-gold:#e3c17c;
+    --accent-gold-soft:#f0d9a3;
+    --accent-blush:#e79aa6;
+    --text-cream:#f7ecd8;
+    --text-muted:#c9b9d6;
+    --danger:#e79aa6;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:radial-gradient(ellipse at 50% 20%, var(--bg-mid) 0%, var(--bg-deep) 65%);
+    font-family:'Jost', sans-serif;
+    color:var(--text-cream);
+    overflow:hidden;
+  }
+  .stars{
+    position:fixed;inset:0;pointer-events:none;z-index:0;
+  }
+  .stars span{
+    position:absolute;width:2px;height:2px;background:var(--accent-gold-soft);
+    border-radius:50%;opacity:.5;animation:twinkle 3.5s ease-in-out infinite;
+  }
+  @keyframes twinkle{0%,100%{opacity:.15;}50%{opacity:.85;}}
+
+  .screen{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;padding:24px;z-index:1;
+    opacity:0;visibility:hidden;transform:translateY(16px);
+    transition:opacity .6s ease, transform .6s ease, visibility .6s;
+  }
+  .screen.active{opacity:1;visibility:visible;transform:translateY(0);}
+
+  .eyebrow{
+    font-size:12px;letter-spacing:.3em;text-transform:uppercase;
+    color:var(--text-muted);margin-bottom:10px;
+  }
+  h1{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600;
+    font-size:clamp(28px, 6vw, 44px);
+    margin:0 0 8px;
+    color:var(--accent-gold-soft);
+    text-align:center;
+  }
+  p.sub{
+    font-size:14px;color:var(--text-muted);text-align:center;margin:0 0 36px;
+    max-width:320px;line-height:1.6;
+  }
+
+  /* --- passcode dots --- */
+  .dots{display:flex;gap:16px;margin-bottom:36px;}
+  .dot{
+    width:14px;height:14px;border-radius:50%;
+    border:1px solid var(--accent-gold);
+    transition:background .25s ease, transform .2s ease;
+  }
+  .dot.filled{background:var(--accent-gold);transform:scale(1.15);}
+  .dots.shake{animation:shake .4s;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-10px);}
+    40%{transform:translateX(10px);}
+    60%{transform:translateX(-8px);}
+    80%{transform:translateX(8px);}
+  }
+
+  .keypad{
+    display:grid;grid-template-columns:repeat(3, 64px);gap:14px;
+  }
+  .key{
+    width:64px;height:64px;border-radius:50%;
+    border:1px solid rgba(227,193,124,.35);
+    background:rgba(255,255,255,.03);
+    color:var(--text-cream);font-size:20px;font-family:'Jost',sans-serif;font-weight:400;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background .15s ease, transform .1s ease, border-color .15s ease;
+  }
+  .key:hover{border-color:var(--accent-gold);}
+  .key:active{transform:scale(.92);background:rgba(227,193,124,.15);}
+  .key.ghost{border:none;background:none;cursor:default;}
+  .key.back{font-size:16px;color:var(--text-muted);}
+
+  .hint{
+    margin-top:26px;font-size:12px;color:var(--text-muted);opacity:.7;
+  }
+
+  /* --- gift screen --- */
+  .box-wrap{
+    position:relative;width:220px;height:220px;
+    display:flex;align-items:flex-end;justify-content:center;
+    cursor:pointer;user-select:none;
+  }
+  .box-wrap.opened{cursor:default;}
+  .box-base{
+    position:relative;width:180px;height:120px;
+    background:linear-gradient(180deg, var(--accent-blush), #c76e82);
+    border-radius:6px;
+    box-shadow:0 20px 50px rgba(0,0,0,.45);
+  }
+  .ribbon-v{
+    position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:22px;height:100%;background:var(--accent-gold);
+  }
+  .lid{
+    position:absolute;bottom:112px;left:50%;transform:translateX(-50%);
+    width:200px;height:34px;border-radius:8px;
+    background:linear-gradient(180deg, #d9899a, var(--accent-blush));
+    box-shadow:0 10px 20px rgba(0,0,0,.35);
+    transition:transform .7s cubic-bezier(.34,1.56,.64,1), opacity .5s ease;
+    transform-origin:20% 100%;
+    z-index:3;
+  }
+  .lid .bow{
+    position:absolute;left:50%;top:-16px;transform:translateX(-50%);
+    width:46px;height:28px;
+  }
+  .bow::before,.bow::after{
+    content:'';position:absolute;width:22px;height:22px;
+    border-radius:50% 50% 50% 0;background:var(--accent-gold);
+  }
+  .bow::before{left:0;transform:rotate(45deg);}
+  .bow::after{right:0;transform:rotate(-45deg) scaleX(-1);}
+
+  .box-wrap.wiggle{animation:wiggle .35s ease;}
+  @keyframes wiggle{
+    0%,100%{transform:rotate(0);}
+    25%{transform:rotate(-4deg);}
+    75%{transform:rotate(4deg);}
+  }
+  .box-wrap.opened .lid{
+    transform:translateX(-50%) translateY(-90px) rotate(-55deg);
+    opacity:0;
+  }
+  .glow{
+    position:absolute;bottom:110px;left:50%;transform:translateX(-50%) scale(0);
+    width:260px;height:260px;border-radius:50%;
+    background:radial-gradient(circle, rgba(240,217,163,.55) 0%, rgba(240,217,163,0) 70%);
+    transition:transform .6s ease;
+    pointer-events:none;
+  }
+  .box-wrap.opened .glow{transform:translateX(-50%) scale(1);}
+
+  .tap-count{margin-top:22px;font-size:12px;color:var(--text-muted);}
+
+  /* --- countdown / fireworks screen --- */
+  #screen-countdown{
+    perspective:800px;cursor:default;
+  }
+  #fireworksCanvas{
+    position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;
+  }
+  .countdown-num{
+    position:relative;z-index:1;
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600;
+    font-size:clamp(90px, 24vw, 180px);
+    color:var(--accent-gold-soft);
+    text-shadow:0 0 40px rgba(227,193,124,.6);
+    opacity:0;transform:scale(.4);
+  }
+  .countdown-num.pop{
+    animation:popNum 1s cubic-bezier(.34,1.56,.64,1) forwards;
+  }
+  @keyframes popNum{
+    0%{opacity:0;transform:scale(.3);}
+    40%{opacity:1;transform:scale(1.15);}
+    70%{transform:scale(.95);}
+    100%{opacity:0;transform:scale(1.3);}
+  }
+  .hbd-text{
+    position:relative;z-index:1;
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;font-weight:600;
+    font-size:clamp(40px, 10vw, 88px);
+    color:var(--accent-gold-soft);
+    text-align:center;
+    text-shadow:0 0 50px rgba(240,217,163,.7), 0 0 90px rgba(231,154,166,.4);
+    opacity:0;
+    transform:scale(.1) translateZ(-400px);
+  }
+  .hbd-text.burst{
+    animation:hbdBurst 2.6s cubic-bezier(.2,.7,.25,1.1) forwards;
+  }
+  @keyframes hbdBurst{
+    0%{opacity:0;transform:scale(.1) translateZ(-400px);}
+    65%{opacity:1;transform:scale(1.35) translateZ(60px);}
+    85%{transform:scale(.92) translateZ(0);}
+    100%{opacity:1;transform:scale(1) translateZ(0);}
+  }
+
+
+  /* --- video screen --- */
+  .video-wrap{
+    width:min(92vw, 520px);
+    border-radius:14px;overflow:hidden;
+    border:1px solid rgba(227,193,124,.35);
+    box-shadow:0 30px 70px rgba(0,0,0,.5);
+    background:#000;
+  }
+  video{width:100%;display:block;max-height:70vh;}
+  .video-fallback{
+    padding:60px 24px;text-align:center;color:var(--text-muted);font-size:13px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<!-- SCREEN 1: PASSCODE -->
+<section class="screen active" id="screen-lock">
+  <div class="eyebrow">สำหรับคนเก่งของเค้า</div>
+  <h1>ความทรงจำ</h1>
+  <p class="sub">กรอกรหัสของคุณ</p>
+
+  <div class="dots" id="dots">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+
+  <div class="keypad" id="keypad">
+    <button class="key" data-k="1">1</button>
+    <button class="key" data-k="2">2</button>
+    <button class="key" data-k="3">3</button>
+    <button class="key" data-k="4">4</button>
+    <button class="key" data-k="5">5</button>
+    <button class="key" data-k="6">6</button>
+    <button class="key" data-k="7">7</button>
+    <button class="key" data-k="8">8</button>
+    <button class="key" data-k="9">9</button>
+    <div class="key ghost"></div>
+    <button class="key" data-k="0">0</button>
+    <button class="key back" id="backspace">ลบ</button>
+  </div>
+
+  <div class="hint">ใบ้:วันของเธอ</div>
+</section>
+
+<!-- SCREEN 1.5: COUNTDOWN + FIREWORKS + HAPPY BIRTHDAY -->
+<section class="screen" id="screen-countdown">
+  <canvas id="fireworksCanvas"></canvas>
+  <div class="countdown-num" id="countdownNum"></div>
+  <div class="hbd-text" id="hbdText">Happy Birthday</div>
+</section>
+
+<!-- SCREEN 2: GIFT BOX -->
+<section class="screen" id="screen-gift">
+  <div class="eyebrow">เซอร์ไพรส์รออยู่</div>
+  <h1>แตะกล่องนี้ 2 ครั้ง</h1>
+  <p class="sub">มีบางอย่างซ่อนอยู่ข้างในสำหรับเธอ</p>
+
+  <div class="box-wrap" id="box">
+    <div class="glow"></div>
+    <div class="box-base">
+      <div class="ribbon-v"></div>
+    </div>
+    <div class="lid">
+      <div class="ribbon-v" style="height:100%;"></div>
+      <div class="bow"></div>
+    </div>
+  </div>
+
+  <div class="tap-count" id="tapCount">แตะแล้ว 0 / 2</div>
+</section>
+
+<!-- SCREEN 3: VIDEO -->
+<section class="screen" id="screen-video">
+  <div class="eyebrow">สุขสันต์วันเกิดนะอ้วน</div>
+  <h1>Gift for ppamm.jr</h1>
+  <p class="sub">&nbsp;</p>
+
+  <div class="video-wrap">
+    <!-- ================================================================ -->
+    <!-- แก้ตรงนี้: เปลี่ยน src="video.mp4" เป็นชื่อไฟล์วิดีโอที่อัปโหลดจริง -->
+    <!-- ถ้าวางไฟล์ไว้โฟลเดอร์เดียวกับ html นี้ ใส่แค่ชื่อไฟล์ เช่น "hbd.mp4" -->
+    <!-- ================================================================ -->
+    <video id="bdayVideo" controls playsinline>
+      <source src="Pam.mp4" type="video/mp4">
+      วิดีโอไม่รองรับ
+    </video>
+  </div>
+</section>
+
+<script>
+  // ================================================================
+  // แก้ตรงนี้: ใส่ชื่อไฟล์เสียงที่จะอัปโหลด (วางไฟล์ไว้โฟลเดอร์เดียวกับ html นี้)
+  const KEY_SOUND_SRC = "key1.mp3";       // เสียงปุ่มกด (brown switch)
+  const FIREWORK_SOUND_SRC = "firework.mp3";   // เสียงพลุ
+  // ================================================================
+
+  function playSound(src, volume){
+    try{
+      const a = new Audio(src);
+      a.volume = volume ?? 1;
+      a.play().catch(()=>{ /* เบราว์เซอร์บล็อกจนกว่าจะมีการโต้ตอบ หรือยังไม่มีไฟล์เสียง */ });
+    }catch(e){ /* ไม่มีไฟล์เสียง ข้ามไป */ }
+  }
+
+  // สร้างดาวพื้นหลัง
+  const starsEl = document.getElementById('stars');
+  for(let i=0;i<40;i++){
+    const s = document.createElement('span');
+    s.style.left = Math.random()*100+'%';
+    s.style.top = Math.random()*100+'%';
+    s.style.animationDelay = (Math.random()*3.5)+'s';
+    starsEl.appendChild(s);
+  }
+
+  // ================================================================
+  // แก้ตรงนี้ถ้าต้องการเปลี่ยนรหัสผ่าน (ปัจจุบันคือวันเกิดแฟน)
+  const PASSCODE = "110846";
+  // ================================================================
+
+  let entered = "";
+  const dotsWrap = document.getElementById('dots');
+  const dots = dotsWrap.querySelectorAll('.dot');
+  const screenLock = document.getElementById('screen-lock');
+  const screenCountdown = document.getElementById('screen-countdown');
+  const screenGift = document.getElementById('screen-gift');
+  const screenVideo = document.getElementById('screen-video');
+  const video = document.getElementById('bdayVideo');
+
+  function renderDots(){
+    dots.forEach((d,i)=> d.classList.toggle('filled', i < entered.length));
+  }
+
+  function checkPasscode(){
+    if(entered === PASSCODE){
+      setTimeout(()=>{
+        screenLock.classList.remove('active');
+        screenCountdown.classList.add('active');
+        startCountdownSequence();
+      }, 350);
+    } else {
+      dotsWrap.classList.add('shake');
+      setTimeout(()=>{
+        dotsWrap.classList.remove('shake');
+        entered = "";
+        renderDots();
+      }, 400);
+    }
+  }
+
+  document.getElementById('keypad').addEventListener('click', (e)=>{
+    const btn = e.target.closest('.key');
+    if(!btn || btn.classList.contains('ghost')) return;
+
+    playSound(KEY_SOUND_SRC, 0.6);
+
+    if(btn.id === 'backspace'){
+      entered = entered.slice(0, -1);
+      renderDots();
+      return;
+    }
+
+    if(entered.length < 6){
+      entered += btn.dataset.k;
+      renderDots();
+      if(entered.length === 6){
+        setTimeout(checkPasscode, 150);
+      }
+    }
+  });
+
+  // รองรับคีย์บอร์ดจริงด้วย
+  document.addEventListener('keydown', (e)=>{
+    if(!screenLock.classList.contains('active')) return;
+    if(/^[0-9]$/.test(e.key) && entered.length < 6){
+      playSound(KEY_SOUND_SRC, 0.6);
+      entered += e.key;
+      renderDots();
+      if(entered.length === 6) setTimeout(checkPasscode, 150);
+    } else if(e.key === 'Backspace'){
+      playSound(KEY_SOUND_SRC, 0.6);
+      entered = entered.slice(0, -1);
+      renderDots();
+    }
+  });
+
+  // --- กล่องของขวัญ ---
+  const box = document.getElementById('box');
+  const tapCountEl = document.getElementById('tapCount');
+  let taps = 0;
+
+  box.addEventListener('click', ()=>{
+    if(box.classList.contains('opened')) return;
+    taps++;
+    tapCountEl.textContent = `แตะแล้ว ${taps} / 2`;
+
+    if(taps === 1){
+      box.classList.add('wiggle');
+      setTimeout(()=> box.classList.remove('wiggle'), 350);
+    } else if(taps >= 2){
+      box.classList.add('opened');
+      tapCountEl.textContent = 'เปิดแล้ว!';
+      setTimeout(()=>{
+        screenGift.classList.remove('active');
+        screenVideo.classList.add('active');
+        // ▼ เล่นวิดีโออัตโนมัติเฉพาะตอนเปิดกล่อง
+        video.play().catch(()=>{
+          // เบราว์เซอร์บางตัวอาจบล็อก autoplay ถ้ายังไม่มีการ interact
+          // กรณีนี้ไม่ต้องทำอะไร ผู้ใช้สามารถกด play เองได้
+        });
+      }, 900);
+    }
+  });
+
+  // --- นับถอยหลัง 3 2 1 -> พลุ -> Happy Birthday -> แตะเพื่อไปต่อ ---
+  const countdownNumEl = document.getElementById('countdownNum');
+  const hbdTextEl = document.getElementById('hbdText');
+  const canvas = document.getElementById('fireworksCanvas');
+  const ctx = canvas.getContext('2d');
+  let fireworkParticles = [];
+  let fireworksTimer = null;
+  let fireworksRunning = false;
+  let countdownReady = false;
+
+  function resizeCanvas(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  const fireworkColors = ['#e3c17c','#f0d9a3','#e79aa6','#c9b9d6','#ffffff'];
+
+  function launchFirework(x, y){
+    playSound(FIREWORK_SOUND_SRC, 0.5);
+    const count = 46;
+    const hue = fireworkColors[Math.floor(Math.random()*fireworkColors.length)];
+    for(let i=0;i<count;i++){
+      const angle = (Math.PI*2*i)/count + Math.random()*0.2;
+      const speed = 2 + Math.random()*3.5;
+      fireworkParticles.push({
+        x, y,
+        vx: Math.cos(angle)*speed,
+        vy: Math.sin(angle)*speed,
+        life: 1,
+        decay: 0.012 + Math.random()*0.012,
+        color: hue,
+        size: 1.5 + Math.random()*1.8
+      });
+    }
+  }
+
+  function fireworksLoop(){
+    if(!fireworksRunning) return;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    fireworkParticles.forEach(p=>{
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.035;
+      p.life -= p.decay;
+    });
+    fireworkParticles = fireworkParticles.filter(p=> p.life > 0);
+    fireworkParticles.forEach(p=>{
+      ctx.globalAlpha = Math.max(p.life, 0);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(fireworksLoop);
+  }
+
+  function startFireworks(){
+    fireworksRunning = true;
+    fireworksLoop();
+    fireworksTimer = setInterval(()=>{
+      const x = canvas.width * (0.2 + Math.random()*0.6);
+      const y = canvas.height * (0.2 + Math.random()*0.35);
+      launchFirework(x, y);
+    }, 450);
+  }
+
+  function stopFireworks(){
+    fireworksRunning = false;
+    clearInterval(fireworksTimer);
+    fireworkParticles = [];
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+
+  function startCountdownSequence(){
+    countdownReady = false;
+    hbdTextEl.classList.remove('burst');
+    hbdTextEl.style.opacity = 0;
+    const sequence = ['3','2','1'];
+    let i = 0;
+
+    function showNext(){
+      if(i > 0){
+        countdownNumEl.classList.remove('pop');
+        void countdownNumEl.offsetWidth; // reflow เพื่อรีสตาร์ทแอนิเมชัน
+      }
+      if(i < sequence.length){
+        countdownNumEl.textContent = sequence[i];
+        countdownNumEl.classList.add('pop');
+        i++;
+        setTimeout(showNext, 750);
+      } else {
+        countdownNumEl.textContent = '';
+        countdownNumEl.classList.remove('pop');
+        startFireworks();
+        setTimeout(()=>{
+          hbdTextEl.style.opacity = '';
+          hbdTextEl.classList.add('burst');
+          setTimeout(()=>{ countdownReady = true; }, 2700);
+        }, 350);
+      }
+    }
+    showNext();
+  }
+
+  screenCountdown.addEventListener('click', ()=>{
+    if(!countdownReady) return;
+    stopFireworks();
+    screenCountdown.classList.remove('active');
+    screenGift.classList.add('active');
+  });
+
+  // ถ้าไฟล์วิดีโอหาไม่เจอ ให้ขึ้นข้อความแทน
+  video.addEventListener('error', ()=>{
+    const wrap = video.parentElement;
+    wrap.innerHTML = '<div class="video-fallback">ยังไม่พบไฟล์วิดีโอ<br>วางไฟล์วิดีโอไว้โฟลเดอร์เดียวกับหน้านี้ แล้วแก้ src ในโค้ดให้ตรงชื่อไฟล์</div>';
+  }, true);
+</script>
+
+</body>
+</html>
